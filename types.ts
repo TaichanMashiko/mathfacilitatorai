@@ -60,7 +60,7 @@ export interface User {
   email: string;
   name: string;
   picture: string;
-  accessToken: string; // For Sheets API
+  // accessToken is now managed internally by AuthService
 }
 
 export enum AppView {

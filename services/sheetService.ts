@@ -1,14 +1,17 @@
-import { Reflection, Course, Lesson } from '../types';
+import { Reflection, Course } from '../types';
+import { authService } from './authService';
+
+declare var gapi: any;
 
 const SPREADSHEET_ID = '1hX01jtPsy08RAOl4wC4VYIkp6XrSUXX_XTf05IdzFpw';
 const REFLECTIONS_SHEET_NAME = 'Reflections';
 
-// Helper to find column index (A=0, B=1...) - Simplified for append
-// We will assume the structure: Date | StudentEmail | LessonId | Rating | Content | AIFeedback
-
-export const saveReflectionToSheet = async (accessToken: string, reflection: Reflection) => {
-  const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${REFLECTIONS_SHEET_NAME}!A:A:append?valueInputOption=USER_ENTERED`;
+export const saveReflectionToSheet = async (accessTokenIgnored: string, reflection: Reflection) => {
+  // We ignore the passed accessToken because authService manages it inside gapi
   
+  // 1. Ensure we have a valid token
+  await authService.ensureAuth();
+
   const values = [
     [
       reflection.date,
@@ -21,32 +24,31 @@ export const saveReflectionToSheet = async (accessToken: string, reflection: Ref
   ];
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ values })
+    // 2. Use gapi.client.sheets
+    const response = await gapi.client.sheets.spreadsheets.values.append({
+      spreadsheetId: SPREADSHEET_ID,
+      range: `${REFLECTIONS_SHEET_NAME}!A:A`,
+      valueInputOption: 'USER_ENTERED',
+      resource: {
+        values: values
+      }
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('Sheets API Error:', errorText);
+    if (response.status !== 200) {
       throw new Error(`Failed to save to sheets: ${response.statusText}`);
     }
+    
+    return response.result;
+
   } catch (error) {
     console.error('Error saving reflection:', error);
     throw error;
   }
 };
 
-// Mock function to load initial data. 
-// In a full version, this would fetch from a 'Lessons' sheet.
-// Since the user said "No upload on web app", we serve the static structure or fetch JSON from a sheet cell.
 export const loadInitialData = async (): Promise<Course[]> => {
-    // For this prototype, we return the hardcoded structure. 
-    // If you want to store course definitions in Sheets, we would add a 'fetch' here.
+    // This remains a mock for now, but could be easily updated to use gapi.client.sheets.spreadsheets.values.get
+    // to load course definitions from a "Configs" sheet.
     return [
       {
         id: 'c1',
@@ -57,7 +59,7 @@ export const loadInitialData = async (): Promise<Course[]> => {
             id: 'u1',
             courseId: 'c1',
             title: '数と式',
-            lessons: [] // To be filled by Teacher editing or hardcoded defaults
+            lessons: [] 
           }
         ]
       }

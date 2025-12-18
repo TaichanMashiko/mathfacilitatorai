@@ -45,7 +45,7 @@ const lessonSchema: Schema = {
 export const generateLessonFromImage = async (base64Data: string, mimeType: string): Promise<LessonContent> => {
   // Initialize inside the function to avoid "process is not defined" error at load time in browser
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const model = "gemini-2.5-flash-latest"; // Using Flash for speed and multimodal capability
+  const model = "gemini-3-flash-preview"; // Using Gemini 3 Flash for better multimodal capability
 
   const prompt = `
     あなたは高校数学の専門家であり、ファシリテーターです。
@@ -93,7 +93,7 @@ export const generateReflectionFeedback = async (
 ): Promise<string> => {
   // Initialize inside the function
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const model = "gemini-2.5-flash-latest";
+  const model = "gemini-3-flash-preview";
 
   const prompt = `
     生徒が「${lessonTitle}」という授業の振り返りを行いました。
