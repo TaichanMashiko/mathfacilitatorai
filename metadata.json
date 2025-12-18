@@ -1,0 +1,5 @@
+{
+  "name": "MathFacilitator AI",
+  "description": "A platform for high school math teachers to create autonomous, differentiated learning environments. Features PDF-to-Lesson generation, scaffolded content for varying skill levels, and AI-driven student reflection.",
+  "requestFramePermissions": []
+}
