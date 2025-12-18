@@ -22,24 +22,35 @@ const App: React.FC = () => {
 
   const handleGoogleLogin = () => {
     // @ts-ignore
+    if (typeof google === 'undefined' || !google.accounts || !google.accounts.oauth2) {
+      alert("Google認証ライブラリがまだ読み込まれていません。ページを更新してもう一度お試しください。");
+      return;
+    }
+
+    // @ts-ignore
     const client = google.accounts.oauth2.initTokenClient({
       client_id: CLIENT_ID,
       scope: 'https://www.googleapis.com/auth/spreadsheets email profile openid',
       callback: async (tokenResponse: any) => {
         if (tokenResponse.access_token) {
-          // Fetch user profile
-          const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
-          }).then(res => res.json());
+          try {
+            // Fetch user profile
+            const userInfo = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+              headers: { Authorization: `Bearer ${tokenResponse.access_token}` },
+            }).then(res => res.json());
 
-          const newUser: User = {
-            email: userInfo.email,
-            name: userInfo.name,
-            picture: userInfo.picture,
-            accessToken: tokenResponse.access_token,
-          };
-          setUser(newUser);
-          setCurrentView(AppView.TEACHER_DASHBOARD); // Default to dashboard list
+            const newUser: User = {
+              email: userInfo.email,
+              name: userInfo.name,
+              picture: userInfo.picture,
+              accessToken: tokenResponse.access_token,
+            };
+            setUser(newUser);
+            setCurrentView(AppView.TEACHER_DASHBOARD); // Default to dashboard list
+          } catch (e) {
+            console.error("Failed to fetch user info", e);
+            alert("ログインに失敗しました。");
+          }
         }
       },
     });

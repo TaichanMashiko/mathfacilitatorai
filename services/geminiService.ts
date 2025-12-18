@@ -1,8 +1,6 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { LessonContent } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 // Schema for the lesson generation to ensure structured JSON output
 const lessonSchema: Schema = {
   type: Type.OBJECT,
@@ -45,6 +43,8 @@ const lessonSchema: Schema = {
 };
 
 export const generateLessonFromImage = async (base64Data: string, mimeType: string): Promise<LessonContent> => {
+  // Initialize inside the function to avoid "process is not defined" error at load time in browser
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const model = "gemini-2.5-flash-latest"; // Using Flash for speed and multimodal capability
 
   const prompt = `
@@ -91,6 +91,8 @@ export const generateReflectionFeedback = async (
   reflectionText: string,
   understandingLevel: number
 ): Promise<string> => {
+  // Initialize inside the function
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
   const model = "gemini-2.5-flash-latest";
 
   const prompt = `
