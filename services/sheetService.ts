@@ -18,8 +18,8 @@ export const saveReflectionToSheet = async (accessTokenIgnored: string, reflecti
       reflection.studentEmail,
       reflection.lessonId,
       reflection.rating,
-      reflection.content,
-      reflection.aiFeedback
+      reflection.content
+      // Removed aiFeedback
     ]
   ];
 

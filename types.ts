@@ -30,7 +30,6 @@ export interface Reflection {
   lessonId: string;
   date: string;
   content: string;
-  aiFeedback: string;
   rating: number;
 }
 

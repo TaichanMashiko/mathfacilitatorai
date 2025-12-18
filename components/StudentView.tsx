@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Lesson, Reflection, User } from '../types';
-import { generateReflectionFeedback } from '../services/geminiService';
 
 interface StudentViewProps {
   user: User;
@@ -13,32 +12,30 @@ const StudentView: React.FC<StudentViewProps> = ({ user, lesson, onBack, onSaveR
   const [activeTab, setActiveTab] = useState<'main' | 'prereq' | 'advanced' | 'practice'>('main');
   const [reflectionText, setReflectionText] = useState('');
   const [rating, setRating] = useState(3);
-  const [isReflecting, setIsReflecting] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { content } = lesson;
 
   const handleReflectionSubmit = async () => {
     if (!reflectionText.trim()) return;
-    setIsReflecting(true);
+    setIsSubmitting(true);
     
     try {
-      const aiResponse = await generateReflectionFeedback(lesson.title, reflectionText, rating);
       const newReflection: Reflection = {
         studentEmail: user.email,
         lessonId: lesson.id,
         date: new Date().toISOString(),
         content: reflectionText,
-        aiFeedback: aiResponse,
         rating: rating
       };
       
-      setFeedback(aiResponse);
-      onSaveReflection(lesson.id, newReflection);
+      await onSaveReflection(lesson.id, newReflection);
+      setReflectionText('');
+      setRating(3);
     } catch (error) {
       alert("エラーが発生しました: " + error);
     } finally {
-      setIsReflecting(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -178,58 +175,40 @@ const StudentView: React.FC<StudentViewProps> = ({ user, lesson, onBack, onSaveR
           <div className="mt-16 pt-8 border-t border-slate-200">
             <h3 className="text-xl font-bold text-slate-800 mb-4">本日の振り返り</h3>
             
-            {!feedback ? (
-              <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">理解度 (1-5)</label>
-                  <div className="flex gap-2">
-                    {[1, 2, 3, 4, 5].map(v => (
-                      <button 
-                        key={v}
-                        onClick={() => setRating(v)}
-                        className={`w-10 h-10 rounded-full font-bold transition-all ${rating === v ? 'bg-blue-600 text-white scale-110' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}`}
-                      >
-                        {v}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-slate-700 mb-1">わかったこと・難しかったこと・次への課題</label>
-                  <textarea 
-                    className="w-full border border-slate-300 rounded-lg p-3 h-32 focus:ring-2 focus:ring-blue-500 outline-none"
-                    placeholder="例：二次関数の頂点の求め方はわかったけど、グラフの移動がイメージしにくかった。"
-                    value={reflectionText}
-                    onChange={(e) => setReflectionText(e.target.value)}
-                  />
-                </div>
-
-                <button 
-                  onClick={handleReflectionSubmit}
-                  disabled={isReflecting || !reflectionText}
-                  className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                >
-                  {isReflecting ? 'AI分析中...' : '振り返りを送信してアドバイスをもらう'}
-                </button>
-              </div>
-            ) : (
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-100 animate-fadeIn">
-                <div className="flex items-start gap-4">
-                  <div className="bg-white p-2 rounded-full shadow text-2xl">🤖</div>
-                  <div>
-                    <h4 className="font-bold text-blue-900 mb-2">AIファシリテーターからのアドバイス</h4>
-                    <p className="text-slate-800 leading-relaxed whitespace-pre-wrap">{feedback}</p>
+            <div className="bg-slate-50 p-6 rounded-xl border border-slate-200">
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-700 mb-1">理解度 (1-5)</label>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5].map(v => (
                     <button 
-                      onClick={() => { setFeedback(null); setReflectionText(''); }}
-                      className="mt-4 text-sm text-blue-600 hover:text-blue-800 underline"
+                      key={v}
+                      onClick={() => setRating(v)}
+                      className={`w-10 h-10 rounded-full font-bold transition-all ${rating === v ? 'bg-blue-600 text-white scale-110' : 'bg-slate-200 text-slate-500 hover:bg-slate-300'}`}
                     >
-                      新しい振り返りを書く
+                      {v}
                     </button>
-                  </div>
+                  ))}
                 </div>
               </div>
-            )}
+              
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-700 mb-1">わかったこと・難しかったこと・次への課題</label>
+                <textarea 
+                  className="w-full border border-slate-300 rounded-lg p-3 h-32 focus:ring-2 focus:ring-blue-500 outline-none"
+                  placeholder="例：二次関数の頂点の求め方はわかったけど、グラフの移動がイメージしにくかった。"
+                  value={reflectionText}
+                  onChange={(e) => setReflectionText(e.target.value)}
+                />
+              </div>
+
+              <button 
+                onClick={handleReflectionSubmit}
+                disabled={isSubmitting || !reflectionText}
+                className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSubmitting ? '保存中...' : '振り返りを保存する'}
+              </button>
+            </div>
           </div>
 
         </main>

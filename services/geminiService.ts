@@ -85,38 +85,3 @@ export const generateLessonFromImage = async (base64Data: string, mimeType: stri
     throw error;
   }
 };
-
-export const generateReflectionFeedback = async (
-  lessonTitle: string,
-  reflectionText: string,
-  understandingLevel: number
-): Promise<string> => {
-  // Initialize inside the function
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const model = "gemini-3-flash-preview";
-
-  const prompt = `
-    生徒が「${lessonTitle}」という授業の振り返りを行いました。
-    生徒の自己評価レベル: ${understandingLevel} / 5
-    生徒の振り返り内容: "${reflectionText}"
-
-    あなたはファシリテーター（先生）として、この生徒にフィードバックを返してください。
-    
-    指針:
-    1. 答えを教えるのではなく、次の学びに繋がるアドバイスをすること。
-    2. 評価が低い場合は、具体的にどこに戻ればよいか（前提知識など）を優しく提案すること。
-    3. 評価が高い場合は、さらに深く考えるための問いかけや、他の生徒へ教えることを推奨すること。
-    4. 150文字以内で、親しみやすく励ますトーンで。
-  `;
-
-  try {
-    const response = await ai.models.generateContent({
-      model: model,
-      contents: prompt,
-    });
-    return response.text || "フィードバックの生成に失敗しました。";
-  } catch (error) {
-    console.error("Gemini Reflection Error:", error);
-    return "現在AIサービスに接続できません。";
-  }
-};
