@@ -10,8 +10,8 @@
     <script src="https://apis.google.com/js/api.js" async defer></script>
     <script>
       // Vercel等のブラウザ環境で process is not defined エラーが出るのを防ぐためのポリフィル
-      // ここで API_KEY を設定することも可能ですが、公開リポジトリの場合は推奨されません。
-      window.process = window.process || { env: { API_KEY: '' } };
+      // グローバルに定義することで、modules実行時に参照できるようにします。
+      window.process = { env: { API_KEY: '' } };
     </script>
     <style>
       body {
@@ -22,10 +22,10 @@
 {
   "imports": {
     "@google/genai": "https://esm.sh/@google/genai@^1.34.0",
-    "react": "https://esm.sh/react@^19.2.3",
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react-dom": "https://esm.sh/react-dom@^19.2.3",
-    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+    "react": "https://esm.sh/react@18.2.0",
+    "react/": "https://esm.sh/react@18.2.0/",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
+    "react-dom/": "https://esm.sh/react-dom@18.2.0/"
   }
 }
 </script>

@@ -42,10 +42,25 @@ const lessonSchema: Schema = {
   required: ["title", "summary", "prerequisites", "mainContent", "deepDive", "practice"]
 };
 
+// Helper to safely get API Key
+const getApiKey = () => {
+  // @ts-ignore
+  if (typeof process !== "undefined" && process.env) {
+    // @ts-ignore
+    return process.env.API_KEY;
+  }
+  // @ts-ignore
+  if (typeof window !== "undefined" && window.process && window.process.env) {
+    // @ts-ignore
+    return window.process.env.API_KEY;
+  }
+  return "";
+};
+
 export const generateLessonFromImage = async (base64Data: string, mimeType: string): Promise<LessonContent> => {
-  // Initialize inside the function to avoid "process is not defined" error at load time in browser
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-  const model = "gemini-3-flash-preview"; // Using Gemini 3 Flash for better multimodal capability
+  const apiKey = getApiKey();
+  const ai = new GoogleGenAI({ apiKey: apiKey });
+  const model = "gemini-3-flash-preview"; 
 
   const prompt = `
     あなたは高校数学の専門家であり、ファシリテーターです。
